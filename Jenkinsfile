@@ -1,13 +1,30 @@
 pipeline {
     agent any
 
+    environment {
+        TOMCAT_HOME = "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1"
+        FRONTEND_DIR = "frontend"
+        BACKEND_DIR = "backend"
+        CONTEXT_PATH = "onlinebanking"
+        BACKEND_WAR_NAME = "onlinebankingbackend.war"
+    }
+
     stages {
 
         // ===== FRONTEND BUILD =====
         stage('Build Frontend') {
             steps {
-                dir('frontend') {
+                dir(FRONTEND_DIR) {
+                    echo "Installing npm packages..."
                     bat 'npm install'
+
+                    echo "Setting Vite base path..."
+                    // Adjust vite.config.js dynamically
+                    bat """
+                    powershell -Command "(Get-Content vite.config.js) -replace 'base: \\'/\\'', 'base: \\'/${CONTEXT_PATH}/\\'' | Set-Content vite.config.js"
+                    """
+
+                    echo "Building frontend..."
                     bat 'npm run build'
                 }
             }
@@ -16,20 +33,22 @@ pipeline {
         // ===== FRONTEND DEPLOY =====
         stage('Deploy Frontend to Tomcat') {
             steps {
-                bat '''
-                if exist "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1\\webapps\\onlinebanking" (
-                    rmdir /S /Q "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1\\webapps\\onlinebanking"
+                echo "Deploying frontend to Tomcat..."
+                bat """
+                if exist "${TOMCAT_HOME}\\webapps\\${CONTEXT_PATH}" (
+                    rmdir /S /Q "${TOMCAT_HOME}\\webapps\\${CONTEXT_PATH}"
                 )
-                mkdir "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1\\webapps\\onlinebanking"
-                xcopy /E /I /Y frontend\\dist\\* "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1\\webapps\\onlinebanking"
-                '''
+                mkdir "${TOMCAT_HOME}\\webapps\\${CONTEXT_PATH}"
+                xcopy /E /I /Y ${FRONTEND_DIR}\\dist\\* "${TOMCAT_HOME}\\webapps\\${CONTEXT_PATH}"
+                """
             }
         }
 
         // ===== BACKEND BUILD =====
         stage('Build Backend') {
             steps {
-                dir('backend') {
+                dir(BACKEND_DIR) {
+                    echo "Building backend WAR..."
                     bat 'mvn clean package'
                 }
             }
@@ -38,26 +57,26 @@ pipeline {
         // ===== BACKEND DEPLOY =====
         stage('Deploy Backend to Tomcat') {
             steps {
-                bat '''
-                if exist "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1\\webapps\\onlinebankingbackend.war" (
-                    del /Q "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1\\webapps\\onlinebankingbackend.war"
+                echo "Deploying backend to Tomcat..."
+                bat """
+                if exist "${TOMCAT_HOME}\\webapps\\${BACKEND_WAR_NAME}" (
+                    del /Q "${TOMCAT_HOME}\\webapps\\${BACKEND_WAR_NAME}"
                 )
-                if exist "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1\\webapps\\onlinebankingbackend" (
-                    rmdir /S /Q "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1\\webapps\\onlinebankingbackend"
+                if exist "${TOMCAT_HOME}\\webapps\\${BACKEND_WAR_NAME -replace '.war',''}" (
+                    rmdir /S /Q "${TOMCAT_HOME}\\webapps\\${BACKEND_WAR_NAME -replace '.war',''}"
                 )
-                copy "backend\\target\\*.war" "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1\\webapps\\"
-                '''
+                copy "${BACKEND_DIR}\\target\\*.war" "${TOMCAT_HOME}\\webapps\\"
+                """
             }
         }
-
     }
 
     post {
         success {
-            echo 'Deployment Successful!'
+            echo 'Frontend and Backend Deployment Successful!'
         }
         failure {
-            echo 'Pipeline Failed.'
+            echo 'Pipeline Failed. Check logs for details.'
         }
     }
 }
