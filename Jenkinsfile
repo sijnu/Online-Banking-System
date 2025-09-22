@@ -19,7 +19,7 @@ pipeline {
                     bat 'npm install'
 
                     echo "Setting Vite base path..."
-                    // Adjust vite.config.js dynamically
+                    // Update vite.config.js to set base to /onlinebanking/
                     bat """
                     powershell -Command "(Get-Content vite.config.js) -replace 'base: \\'/\\'', 'base: \\'/${CONTEXT_PATH}/\\'' | Set-Content vite.config.js"
                     """
@@ -57,16 +57,21 @@ pipeline {
         // ===== BACKEND DEPLOY =====
         stage('Deploy Backend to Tomcat') {
             steps {
-                echo "Deploying backend to Tomcat..."
-                bat """
-                if exist "${TOMCAT_HOME}\\webapps\\${BACKEND_WAR_NAME}" (
-                    del /Q "${TOMCAT_HOME}\\webapps\\${BACKEND_WAR_NAME}"
-                )
-                if exist "${TOMCAT_HOME}\\webapps\\${BACKEND_WAR_NAME -replace '.war',''}" (
-                    rmdir /S /Q "${TOMCAT_HOME}\\webapps\\${BACKEND_WAR_NAME -replace '.war',''}"
-                )
-                copy "${BACKEND_DIR}\\target\\*.war" "${TOMCAT_HOME}\\webapps\\"
-                """
+                script {
+                    // Compute backend folder name without .war
+                    def backendFolder = BACKEND_WAR_NAME.replace('.war','')
+
+                    echo "Deploying backend to Tomcat..."
+                    bat """
+                    if exist "${TOMCAT_HOME}\\webapps\\${BACKEND_WAR_NAME}" (
+                        del /Q "${TOMCAT_HOME}\\webapps\\${BACKEND_WAR_NAME}"
+                    )
+                    if exist "${TOMCAT_HOME}\\webapps\\${backendFolder}" (
+                        rmdir /S /Q "${TOMCAT_HOME}\\webapps\\${backendFolder}"
+                    )
+                    copy "${BACKEND_DIR}\\target\\*.war" "${TOMCAT_HOME}\\webapps\\"
+                    """
+                }
             }
         }
     }
