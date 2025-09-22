@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+	--bg-gradient: linear-gradient(135deg, #1d4ed8 0%, #16a34a 100%);
+}
+
+body {
+	@apply bg-gray-50 text-gray-900;
+}
+
+.gradient-card {
+	background-image: var(--bg-gradient);
+} 
