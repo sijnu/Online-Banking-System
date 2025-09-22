@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
-	  base: '/onlinebanking/', // This ensures all asset paths are prefixed correctly
+  base: '/onlinebanking/',
 
 	plugins: [react()],
 	server: {
