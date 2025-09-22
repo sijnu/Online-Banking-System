@@ -2,7 +2,6 @@ package com.example.banking.config;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
@@ -11,13 +10,13 @@ import java.util.Map;
 
 @Service
 public class JwtService {
+
     private final Key signingKey;
     private final long expirationMs;
 
-    public JwtService(@Value("${app.jwt.secret}") String secret,
-            @Value("${app.jwt.expiration-ms}") long expirationMs) {
-        this.signingKey = Keys.hmacShaKeyFor(secret.getBytes());
-        this.expirationMs = expirationMs;
+    public JwtService(AppProperties appProperties) {
+        this.signingKey = Keys.hmacShaKeyFor(appProperties.getJwt().getSecret().getBytes());
+        this.expirationMs = appProperties.getJwt().getExpirationMs();
     }
 
     public String generateToken(String subject, Map<String, Object> claims) {

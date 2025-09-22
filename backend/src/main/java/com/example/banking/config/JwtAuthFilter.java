@@ -18,9 +18,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * Extracts JWT from Authorization header, validates it and populates SecurityContext.
- */
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
@@ -34,28 +31,31 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+
         String header = request.getHeader("Authorization");
         if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
             String token = header.substring(7);
             try {
                 Jws<Claims> jws = jwtService.parseToken(token);
                 Claims body = jws.getBody();
-                String subject = body.getSubject();
-                Object roleObj = body.get("role");
-                String rawRole = roleObj == null ? null : roleObj.toString();
+                String username = body.getSubject();
+                String role = body.get("role", String.class);
 
-                if (subject != null && rawRole != null) {
-                    String normalizedRole = rawRole.startsWith("ROLE_") ? rawRole : "ROLE_" + rawRole;
-                    var auth = new UsernamePasswordAuthenticationToken(subject, null,
-                            List.of(new SimpleGrantedAuthority(normalizedRole)));
+                if (username != null && role != null) {
+                    String normalizedRole = role.startsWith("ROLE_") ? role : "ROLE_" + role;
+                    var auth = new UsernamePasswordAuthenticationToken(
+                            username,
+                            null,
+                            List.of(new SimpleGrantedAuthority(normalizedRole))
+                    );
                     SecurityContextHolder.getContext().setAuthentication(auth);
-                } else {
-                    log.warn("JWT missing subject or role claim");
                 }
-            } catch (Exception ex) {
-                log.warn("Failed to parse/validate JWT token: {}", ex.getMessage());
+
+            } catch (Exception e) {
+                log.warn("Invalid JWT token: {}", e.getMessage());
             }
         }
+
         filterChain.doFilter(request, response);
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 public class AppProperties {
 
     private Jwt jwt = new Jwt();
+    private String corsAllowedOrigins;
 
     public Jwt getJwt() {
         return jwt;
@@ -15,6 +16,14 @@ public class AppProperties {
 
     public void setJwt(Jwt jwt) {
         this.jwt = jwt;
+    }
+
+    public String getCorsAllowedOrigins() {
+        return corsAllowedOrigins;
+    }
+
+    public void setCorsAllowedOrigins(String corsAllowedOrigins) {
+        this.corsAllowedOrigins = corsAllowedOrigins;
     }
 
     public static class Jwt {
@@ -36,13 +45,5 @@ public class AppProperties {
         public void setExpirationMs(long expirationMs) {
             this.expirationMs = expirationMs;
         }
-    }
-
-    public String getJwtSecret() {
-        return jwt.getSecret();
-    }
-
-    public long getJwtExpirationMs() {
-        return jwt.getExpirationMs();
     }
 }

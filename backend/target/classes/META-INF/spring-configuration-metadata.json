@@ -9,15 +9,19 @@
       "name": "app.jwt",
       "type": "com.example.banking.config.AppProperties$Jwt",
       "sourceType": "com.example.banking.config.AppProperties",
-      "sourceMethod": "getJwt()"
+      "sourceMethod": "public com.example.banking.config.AppProperties.Jwt getJwt() "
     }
   ],
   "properties": [
     {
+      "name": "app.cors-allowed-origins",
+      "type": "java.lang.String",
+      "sourceType": "com.example.banking.config.AppProperties"
+    },
+    {
       "name": "app.jwt.expiration-ms",
       "type": "java.lang.Long",
-      "sourceType": "com.example.banking.config.AppProperties$Jwt",
-      "defaultValue": 0
+      "sourceType": "com.example.banking.config.AppProperties$Jwt"
     },
     {
       "name": "app.jwt.secret",

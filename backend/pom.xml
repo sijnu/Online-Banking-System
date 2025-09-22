@@ -3,7 +3,7 @@
 	<groupId>com.example</groupId>
 	<artifactId>online-banking</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>jar</packaging>
+	<packaging>war</packaging>
 	<name>online-banking</name>
 	<description>Online Banking System</description>
 
@@ -70,6 +70,7 @@
 	</dependencies>
 
 	<build>
+	<finalName>onlinebanking</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
